@@ -9,33 +9,50 @@
     </style>
 </head>
 <body>
-    <h1>Mis Productos</h1>
-    
-    <div id="product-list">Cargando productos...</div>
+    <h1>Mi Ecommerce Practica</h1>
 
-    <script>
-        // Cambia el puerto (5xxx) por el que usa tu API
-        const API_URL = 'http://localhost:5049/api/products';
+<!-- Formulario para agregar productos -->
+<div style="margin-bottom: 30px; border: 1px solid #eee; padding: 15px;">
+    <h3>Agregar Nuevo Producto</h3>
+    <input type="text" id="name" placeholder="Nombre del producto">
+    <input type="number" id="price" placeholder="Precio">
+    <button onclick="addProduct()">Guardar Producto</button>
+</div>
 
-        async function loadProducts() {
-            try {
-                const response = await fetch(API_URL);
-                const products = await response.json();
-                const listDiv = document.getElementById('product-list');
-                
-                listDiv.innerHTML = products.map(p => `
-                    <div class="product-card">
-                        <h3>${p.name}</h3>
-                        <p>Precio: $${p.price}</p>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('product-list').innerText = 'Error al conectar con la API';
-            }
-        }
+<div id="product-list">Cargando productos...</div>
 
+<script>
+    const API_URL = 'http://localhost:5049/api/products'; // <--- ASEGÚRATE QUE EL PUERTO SEA EL TUYO
+
+    async function loadProducts() {
+        const response = await fetch(API_URL);
+        const products = await response.json();
+        const listDiv = document.getElementById('product-list');
+        listDiv.innerHTML = products.map(p => `
+            <div class="product-card">
+                <h3>${p.name}</h3>
+                <p>Precio: $${p.price}</p>
+            </div>
+        `).join('');
+    }
+
+    async function addProduct() {
+        const name = document.getElementById('name').value;
+        const price = document.getElementById('price').value;
+
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, price: parseFloat(price) })
+        });
+
+        // Limpiar campos y recargar lista
+        document.getElementById('name').value = '';
+        document.getElementById('price').value = '';
         loadProducts();
-    </script>
+    }
+
+    loadProducts();
+</script>
 </body>
 </html>
