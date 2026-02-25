@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Ecommerce Practica</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .product-card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Mis Productos</h1>
+    
+    <div id="product-list">Cargando productos...</div>
+
+    <script>
+        // Cambia el puerto (5xxx) por el que usa tu API
+        const API_URL = 'http://localhost:5049/api/products';
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(API_URL);
+                const products = await response.json();
+                const listDiv = document.getElementById('product-list');
+                
+                listDiv.innerHTML = products.map(p => `
+                    <div class="product-card">
+                        <h3>${p.name}</h3>
+                        <p>Precio: $${p.price}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('product-list').innerText = 'Error al conectar con la API';
+            }
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>
