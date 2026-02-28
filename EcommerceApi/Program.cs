@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 //builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("EcommerceDb"));
+    options.UseSqlite("Data Source=ecommerce.db"));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
