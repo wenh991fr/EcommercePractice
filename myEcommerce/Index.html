@@ -7,6 +7,10 @@
     <!-- CSS de Bootstrap -->
      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
      <link href="https://cdn.jsdelivr.net" rel="stylesheet">
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap-toaster@5.2.0-beta1.1/dist/umd/bootstrap-toaster.min.js"></script>
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap-toaster@5.2.0-beta1.1/dist/css/bootstrap-toaster.min.css" rel="stylesheet">
+
     <style>
         body { background-color: #f8f9fa; }
         .product-card { transition: transform 0.2s; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -25,8 +29,12 @@
         </div>
     </nav>
 
+    
+
     <div class="container">
         <!-- Formulario con mejor UX (agrupado y limpio) -->
+        
+
         <div class="card p-4 mb-5 shadow-sm">
             <h4 class="mb-3">Nuevo Producto</h4>
             <div class="row g-3">
@@ -42,61 +50,156 @@
             </div>
         </div>
 
+
         <!-- Lista de Productos en Grid (Rejilla) -->
         <h2 class="mb-4">Catálogo de Productos</h2>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="searchInput" class="form-control" placeholder="🔍 Buscar por nombre..." onkeyup="filterProducts()">
+            </div>
+        </div>
+
+        
         <div id="product-list" class="row row-cols-1 row-cols-md-3 g-4">
             <!-- Los productos se cargarán aquí -->
         </div>
     </div>
 
+
+    <!-- Notificación Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMessage">Producto guardado con éxito.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
 <script>
     const API_URL = 'http://localhost:5049/api/products'; // <--- ASEGÚRATE QUE EL PUERTO SEA EL TUYO
 
     async function loadProducts() {
-            const response = await fetch(API_URL);
-            const products = await response.json();
-            const listDiv = document.getElementById('product-list');
-            
-            listDiv.innerHTML = products.map(p => `
-                <div class="col">
-                    <div class="card h-100 product-card">
-                        <img src="https://picsum.photos/id/${p.id}/200/300" class="card-img-top" alt="Producto">
-                        <div class="card-body">
-                            <h5 class="card-title">${p.name}</h5>
-                            <p class="card-text text-success fw-bold">$${p.price}</p>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <button onclick="deleteProduct(${p.id})" class="btn btn-outline-danger btn-sm w-100">Eliminar</button>
-                        </div>
+        const response = await fetch(API_URL);
+        const products = await response.json();
+        const listDiv = document.getElementById('product-list');
+
+        // UI: Mostrar spinner mientras carga
+        listDiv.innerHTML = `
+            <div class="col-12 text-center my-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p>Conectando con la tienda...</p>
+            </div>`;
+    
+        // Si no hay productos, mostramos un diseño especial
+        if (products.length === 0) {
+            listDiv.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="display-1 text-muted">📦</div>
+                    <h3 class="text-secondary">Tu inventario está vacío</h3>
+                    <p class="text-muted">¡Comienza agregando tu primer producto en el formulario de arriba!</p>
+                </div>`;
+            return;
+        }
+
+    // Si hay productos, los dibujamos normal
+        listDiv.innerHTML = products.map(p => `
+            <div class="col">
+                <div class="card h-100 product-card shadow-sm">
+                    <img src="https://picsum.photos/id/${p.id}/300/200" class="card-img-top" alt="Producto">
+                    <div class="card-body">
+                        <h5 class="card-title text-capitalize">${p.name}</h5>
+                        <p class="card-text text-success fs-4 fw-bold">$${p.price}</p>
+                    </div>
+                    <div class="card-footer bg-white border-0 pb-3">
+                        <button onclick="deleteProduct(${p.id})" class="btn btn-outline-danger btn-sm w-100">Eliminar</button>
                     </div>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
+    }
 
     async function addProduct() {
-            const name = document.getElementById('name').value;
-            const price = document.getElementById('price').value;
-            if(!name || !price) return alert("Llena los campos");
+        // 1. Obtenemos los elementos del DOM (los inputs)
+        const nameInput = document.getElementById('name');
+        const priceInput = document.getElementById('price');
 
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, price: parseFloat(price) })
-            });
-
-            document.getElementById('name').value = '';
-            document.getElementById('price').value = '';
-            loadProducts();
+        // 2. Validamos usando los valores (.value)
+        if (!nameInput.value || !priceInput.value) {
+            showNotification("Completa todos los campos", true); 
+            return;
         }
 
+        // 3. Enviamos la petición
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: nameInput.value, 
+                    price: parseFloat(priceInput.value) 
+                })
+            });
 
-    async function deleteProduct(id) {
-        if (confirm('¿Seguro que quieres eliminarlo?')) {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            loadProducts(); // Recargar la lista
+            if (response.ok) {
+                showNotification("¡Producto añadido con éxito! 🚀");
+
+                // 4. Limpiamos y regresamos el foco
+                nameInput.value = '';
+                priceInput.value = '';
+                nameInput.focus();
+
+                loadProducts();
+            } else {
+                const errorData = await response.json();
+                // Extraemos el primer error que envió ASP.NET Core
+                const firstError = Object.values(errorData.errors)[0][0]; 
+                showNotification(firstError, true); // Muestra: "El precio debe ser mayor a 0"
+            }
+        } catch (error) {
+            showNotification("No se pudo conectar con la API", true);
         }
     }
 
+    
+
+
+    function showNotification(message, isError = false) {
+        const toastElement = document.getElementById('liveToast');
+        const toastBody = document.getElementById('toastMessage');
+        
+        // Cambiamos el color si es error o éxito
+        toastElement.classList.remove('bg-success', 'bg-danger');
+        toastElement.classList.add(isError ? 'bg-danger' : 'bg-success');
+        
+        toastBody.innerText = message;
+        
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
+
+    // Llama a esta función dentro de addProduct() y deleteProduct()
+    // Ejemplo en addProduct: 
+    // await fetch(...);
+    // showNotification("¡Producto añadido!");
+    // loadProducts();
+
+
+    function filterProducts() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('#product-list .col');
+
+        cards.forEach(card => {
+            const name = card.querySelector('.card-title').innerText.toLowerCase();
+            // UX: Si el nombre incluye el término, lo mostramos; si no, lo ocultamos
+            if (name.includes(term)) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+        });
+    }
 
 
     loadProducts();
