@@ -254,6 +254,15 @@
     }
 
 
+    async function deleteProduct(id) {
+        if (confirm('¿Seguro que quieres eliminarlo?')) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            showNotification("Producto eliminado correctamente", false); // <--- AQUÍ
+            loadProducts();
+        }
+    }
+
+
     loadProducts();
 </script>
 </body>
