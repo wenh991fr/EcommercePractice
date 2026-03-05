@@ -31,6 +31,7 @@ Responsive Interface: Designed to display correctly on both mobile and desktop d
 
 Main Screen (https://ibb.co/DX7Rp21)
 Edit Screen (https://ibb.co/9Ht9jjRq)
+video (https://youtu.be/mAg8TJVvlfY)
 
 🚀 How to Run the Project Locally
 
@@ -76,6 +77,7 @@ Buscador en Tiempo Real: Filtrado de productos mediante JavaScript sin recargar 
 
 (Pantalla principal (https://ibb.co/DX7Rp21)
 Pantalla de edición (https://ibb.co/9Ht9jjRq))
+video (https://youtu.be/mAg8TJVvlfY)
 
 🚀 Cómo ejecutar el proyecto localmente
 
