@@ -77,6 +77,25 @@
   </div>
 </div>
 
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <input type="text" id="editName" class="form-control mb-2" placeholder="Nombre">
+        <input type="number" id="editPrice" class="form-control" placeholder="Precio">
+      </div>
+      <div class="modal-footer">
+        <button onclick="saveEdit()" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     const API_URL = 'http://localhost:5049/api/products'; // <--- ASEGÚRATE QUE EL PUERTO SEA EL TUYO
 
@@ -113,6 +132,7 @@
                         <p class="card-text text-success fs-4 fw-bold">$${p.price}</p>
                     </div>
                     <div class="card-footer bg-white border-0 pb-3">
+                        <button onclick="openEdit(${p.id}, '${p.name}', ${p.price})" class="btn btn-outline-primary btn-sm w-100 mb-2">Editar</button>
                         <button onclick="deleteProduct(${p.id})" class="btn btn-outline-danger btn-sm w-100">Eliminar</button>
                     </div>
                 </div>
@@ -199,6 +219,38 @@
                 card.style.display = "none";
             }
         });
+    }
+
+
+    let editModal; // Variable global para controlar el modal
+
+    // 1. Cargar datos en el modal y abrirlo
+    function openEdit(id, name, price) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editPrice').value = price;
+        
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        editModal.show();
+    }
+
+    // 2. Enviar los cambios a la API (PUT)
+    async function saveEdit() {
+        const id = document.getElementById('editId').value;
+        const name = document.getElementById('editName').value;
+        const price = document.getElementById('editPrice').value;
+
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: parseInt(id), name: name, price: parseFloat(price) })
+        });
+
+        if (response.ok) {
+            showNotification("Producto actualizado correctamente");
+            editModal.hide();
+            loadProducts();
+        }
     }
 
 

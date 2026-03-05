@@ -45,6 +45,27 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
+
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutProduct(int id, Product product)
+    {
+        if (id != product.Id) return BadRequest();
+
+        _context.Entry(product).State = EntityState.Modified;
+
+        try {
+            await _context.SaveChangesAsync();
+        } catch (DbUpdateConcurrencyException) {
+            if (!_context.Products.Any(e => e.Id == id)) return NotFound();
+            throw;
+        }
+
+        return NoContent();
+    }
+
+
+
 }
 
 
